@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: pass
+          POSTGRES_DB: kt06
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U user -d kt06"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://user:pass@localhost:5432/kt06
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Установка зависимостей
+        run: pip install -r requirements.txt
+      - name: Миграции
+        run: alembic upgrade head
+      - name: Запуск тестов
+        run: pytest tests/ -v
