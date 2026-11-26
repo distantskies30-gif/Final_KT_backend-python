@@ -5,14 +5,14 @@ from sqlalchemy.orm import Session
 from app.auth import get_current_user
 from app.database import get_db
 from app.models import Customer, Order, OrderItem, Product, User
-from app.schemas import OrderCreate, OrderResponse
+from app.schemas import OrderCreate, OrderOut
 from app.tasks import send_order_notification
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
 
-@router.post("/", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=OrderOut, status_code=status.HTTP_201_CREATED)
 def create_order(
     order_in: OrderCreate,
     db: Session = Depends(get_db),
@@ -78,7 +78,7 @@ def create_order(
     return new_order
 
 
-@router.get("/", response_model=list[OrderResponse])
+@router.get("/", response_model=list[OrderOut])
 def list_orders(
     skip: int = 0,
     limit: int = 100,
@@ -88,7 +88,7 @@ def list_orders(
     return db.query(Order).offset(skip).limit(limit).all()
 
 
-@router.get("/{order_id}", response_model=OrderResponse)
+@router.get("/{order_id}", response_model=OrderOut)
 def get_order(
     order_id: int,
     db: Session = Depends(get_db),
